@@ -27,7 +27,9 @@ const getContentType = path=>{
         
   }
 const Store =   (mask,rootDir) => {
+       
         const store = []
+        // fix for windows style directory separator 
         const root = rootDir.replace(/\\/g,"/")
         const load =async () => {  
             
@@ -41,6 +43,7 @@ const Store =   (mask,rootDir) => {
                         type : TYPE.FOLDER  , 
                         files : [],
                         path  : filePath + "/",
+                        mask : filePath.replace(root,mask)+"/"
                     // absolutePath : path.resolve(path.join(root,filePath))
                     }
                         store.push(dirObj)
@@ -54,7 +57,8 @@ const Store =   (mask,rootDir) => {
             let initialDir = {
                 type : TYPE.FOLDER,
                 files : [],
-                path : root + "/" 
+                path : root + "/",
+                mask : mask + "/"
             }
             store.push(initialDir)
             for await   (let  fileObject  of walk(root,initialDir)){
@@ -67,6 +71,7 @@ const Store =   (mask,rootDir) => {
                 path  : filePath,
                 contentType : getContentType(filePath),
                 type: TYPE.FILE,
+                mask : filePath.replace(root,mask) 
                 
             }
             fileObject.dirObj.files.push(obj)
@@ -75,7 +80,7 @@ const Store =   (mask,rootDir) => {
             }
             return store; 
         }
-    const normalizePath = (path)=>{
+   /* const normalizePath = (path)=>{
 
         if(store.length<1){
             throw new Error("store not have any item or not loaded yet")
@@ -88,17 +93,23 @@ const Store =   (mask,rootDir) => {
       
 
        return path;
-    }
+    }*/
      
 
     return {
         load : async ()=> await load(),
         getRoot : ()=> rootDir  , 
-        get : (path)=>{
-           
-            path = normalizePath(path)
-            let fileObject = store.find(item=>  item.path === path)
-            
+        get : (mask)=>{
+            console.log("mask before ",mask)
+            if(store.length < 1){
+                throw new Error("store not initiated")
+            }
+                
+            let fileObject = store.find(item=>  {
+                 console.log("item mask",item.mask)
+                console.log("mask",mask)
+                return item.mask === mask})
+                
             if(!fileObject){
 
                     throw new Error(`file not found`)                
@@ -113,14 +124,14 @@ export default  async (config)=>{
 
     
     const Stores = {}
-    const findMatch = (path,stores)=>{
+    const getStoreByMask = (mask)=>{
         
-        let prefixes = Object.keys(stores)
+        let prefixes = Object.keys(Stores)
         prefixes = prefixes.sort((a,b)=>  a.length < b.length)
         for(let prefix of prefixes){
             let regex = new RegExp("^"+prefix)
-            if(regex.test(path)){
-                    return [prefix,stores[prefix]]
+            if(regex.test(mask)){
+                    return Stores[prefix]
             }
         }
         throw new Error(`path not found`)
@@ -136,11 +147,11 @@ export default  async (config)=>{
     await Promise.all(promises)
     
     return {
-        get : (path,type=TYPE.FILE)=>{
+        get : (mask)=>{
 
-            const [prefix , store  ]   = findMatch(path,Stores)
-            path =  path.replace(prefix,store.getRoot())
-            return store.get(path,type)
+            const  store     = getStoreByMask(mask)
+        
+            return store.get(mask)
         }
     }
      

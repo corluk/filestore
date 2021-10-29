@@ -1,5 +1,5 @@
 {
-  "name": "filestore",
+  "name": "@corluk/filestore",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -23,5 +23,13 @@
     "chai": "^4.3.4",
     "eslint": "^8.1.0",
     "jest": "^27.3.1"
+  },
+  "runtimeArgs": [
+    "--nolazy"
+  ],
+  "dependencies": {
+    "archiver": "^5.3.0",
+    "archiver-promise": "^1.0.0",
+    "uuid": "^8.3.2"
   }
 }
