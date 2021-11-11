@@ -116,9 +116,13 @@ const Store =   (mask,rootDir) => {
             }
             return fileObject
           
+        },
+    getAll : ()=>{
+            return store;
         }
 
     }
+    
 }
 export default  async (config)=>{
 
@@ -152,6 +156,10 @@ export default  async (config)=>{
             const  store     = getStoreByMask(mask)
         
             return store.get(mask)
+        },
+        all : (mask)=>{
+            const store = getStoreByMask(mask) 
+            return store.getAll()
         }
     }
      
